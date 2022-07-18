@@ -1,6 +1,7 @@
 import pyodbc
 from sqlalchemy import create_engine
 import pandas as pd
+from app import config
 
 try:
     engine = create_engine("mssql+pyodbc://sa:kali21@DESKTOP-KLRPEIV/dbtortelin?driver=ODBC+Driver+17+for+SQL+Server")
@@ -11,10 +12,10 @@ except Exception as ex:
 codigos = pd.read_sql_query("SELECT CONCAT(SUBSTRING(sabor,1,3),SUBSTRING(REVERSE(sabor),1,3),SUBSTRING(tamanio,1,3)) as codigo, sabor, tamanio from (select distinct sabor, tamanio from tabla_provisional) as fr;", engine)
 codigos = codigos.values.tolist()
 
-server = 'DESKTOP-KLRPEIV'
-bd = 'dbtortelin'
-usuario = 'sa'
-contrasena = 'kali21'
+server = config['server']
+bd = config['bd']
+usuario = config['usuario']
+contrasena = config['contrasena']
 
 
 try:
