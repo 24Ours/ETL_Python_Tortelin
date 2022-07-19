@@ -13,6 +13,7 @@ import re
 from sqlalchemy import create_engine
 import psycopg2
 import time
+from app import config
 
 def Create_Service(client_secret_file, api_name, api_version, *scopes):
     print(client_secret_file, api_name, api_version, scopes, sep='-')
@@ -63,7 +64,7 @@ service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
 # CONVERTIR MS.EXCEL A FORMATO SPREADSHEET
 
-from apiclient import errors
+from googleapiclient import errors
 from googleapiclient.http import MediaFileUpload
 # ...
 
@@ -254,9 +255,7 @@ def listar_new_excels_sheets():
                     #lista_sheets_pk.append(file.get('id'))
                     lista_nuevos_sheet.append(file.get('id'))
                     lista_back.append(file.get('id'))
-                    for j in lista_nuevos_sheet:
-                        print("lista_nuevos_sheet: "+j)
-                        time.sleep(3)
+                        
             page_token = response.get('nextPageToken', None)
             if page_token is None:
                 break
@@ -566,7 +565,10 @@ def datos_etl():
     ficha4 = open('lista_nuevos_sheet.pckl', 'rb')
     lista_nuevos_sheet = pickle.load(ficha4)
     ficha4.close()
-    lista_nombres_local = ["Vista Alegre", "Virreyes", "Santa Rosa", "Santa Anita", "Los Ángeles"]
+    ficha_nombre = open('lista_nombre_folder_local.pckl', 'rb')
+    lista_nombres_local = pickle.load(ficha_nombre)
+    ficha_nombre.close()
+
     contador = 0
     datos_agregar = []
     for i in lista_locales:
@@ -606,8 +608,10 @@ def datos_etl():
     df = df[["codigo", "sabor", "tamanio", "unidades_vendidas", 
             "unidades_desechadas", "precio_dia", "dia", "semana", "mes", 
             "anio", "fecha", "dia_nombre", "nombre_local", "distrito", "departamento"]]
+
+    df['costo'] = 0
     
-    df.to_sql('registro_nuevo', engine, if_exists="append", index=False)
+    df.to_sql('registro_tortelin', engine, if_exists="append", index=False)
     
     return print('No ocurrieron errores')
 
@@ -623,7 +627,12 @@ print(df)
 engine = create_engine('postgresql+psycopg2://postgres:12345678@localhost:5432/DBTortelin')
 df.to_sql('registro_tortelin', engine, if_exists="append", index=False) """
 
-engine = create_engine('postgresql+psycopg2://postgres:12345678@localhost:5432/DBTortelin')
+server = config['server']
+bd = config['bd']
+usuario = config['usuario']
+contrasena = config['contrasena']
+
+engine = create_engine("mssql+pyodbc://" + str(usuario) + ":"+ str(contrasena) + "@" + str(server)+ "/" + str(bd)+ "?driver=ODBC+Driver+17+for+SQL+Server")
 
 
 
@@ -688,7 +697,7 @@ def ejecutar_mes_pick(nombre_local, nombre_carpeta, id_carpeta_mes):
             "unidades_desechadas", "precio_dia", "dia", "semana", "mes", 
             "anio", "fecha", "dia_nombre", "nombre_local", "distrito", "departamento"]]
     
-    df.to_sql('registro_nuevo', engine, if_exists="append", index=False)
+    df.to_sql('registro_tortelin', engine, if_exists="append", index=False)
     
     list_mes.append(id_carpeta_mes)
     fichero = open('lista_id_folder_mes_automatizado.pckl', 'wb')
@@ -761,7 +770,7 @@ def ejecutar_mes_nopick(nombre_local, nombre_carpeta, id_carpeta_mes):
             "unidades_desechadas", "precio_dia", "dia", "semana", "mes", 
             "anio", "fecha", "dia_nombre", "nombre_local", "distrito", "departamento"]]
     
-    df.to_sql('registro_nuevo', engine, if_exists="append", index=False)
+    df.to_sql('registro_tortelin', engine, if_exists="append", index=False)
     
     list_mes.append(id_carpeta_mes)
     fichero = open('lista_id_folder_mes_automatizado.pckl', 'wb')
@@ -847,7 +856,7 @@ def ejecutar_mes_nopick(nombre_local, nombre_carpeta, id_carpeta_mes):
 
 def mostrar_fechas_faltantes_procesar():
     lista_de_listas = []
-    ficha = open('lista_id_excel_sheet.pckl', 'rb')
+    ficha = open('lista_nuevos_sheet.pckl', 'rb')
     lista_sheets = pickle.load(ficha)
     ficha.close()
     ficha2 = open('lista_id_folder_mes_automatizado.pckl', 'rb')
@@ -940,7 +949,7 @@ def ejecutar_mes_noviembre_2021_santa_anita(nombre_local, nombre_carpeta, id_car
             "unidades_desechadas", "precio_dia", "dia", "semana", "mes", 
             "anio", "fecha", "dia_nombre", "nombre_local", "distrito", "departamento"]]
     
-    df.to_sql('registro_nuevo', engine, if_exists="append", index=False)
+    df.to_sql('registro_tortelin', engine, if_exists="append", index=False)
     
     return print("la carpeta "+nombre_carpeta+ " del local "+nombre_local+" se ejecutó sin problemas")
 
@@ -956,7 +965,7 @@ def dia_unico(id_loc, nombre_local, nombre_carpeta):
                 "unidades_desechadas", "precio_dia", "dia", "semana", "mes", 
                 "anio", "fecha", "dia_nombre", "nombre_local", "distrito", "departamento"]]
         
-    df.to_sql('registro_nuevo', engine, if_exists="append", index=False)
+    df.to_sql('registro_tortelin', engine, if_exists="append", index=False)
     return print("se proceso correctamente")
 
 def datos_faltantes(nombre_loc, id_loc):
@@ -970,6 +979,9 @@ def datos_faltantes(nombre_loc, id_loc):
     ficha4 = open('lista_id_excel_sheet.pckl', 'rb')
     lista_sheet_completo = pickle.load(ficha4)
     ficha4.close()
+    ficha_nuevos = open('lista_nuevos_sheet.pckl', 'rb')
+    lista_nuevos_sheet = pickle.load(ficha_nuevos)
+    ficha_nuevos.close()
     query_extra = " and '"+id_local+"'"+" in parents"
     page_token = None
     while True:
@@ -982,7 +994,7 @@ def datos_faltantes(nombre_loc, id_loc):
             query_extra_2 = " and '"+file.get('id')+"'"+" in parents"
             page_token_2 = None
             while True:
-                response2 = service.files().list(q="mimeType='application/vnd.google-apps.spreadsheet'"+query_extra_2,
+                response2 = service.files().list(q="mimeType='application/vnd.google-apps.spreadsheet'"+query_extra_2+" and trashed = false",
                                                 spaces='drive',
                                                 fields='nextPageToken, files(id, name)',
                                                 pageToken=page_token_2).execute()
@@ -991,7 +1003,8 @@ def datos_faltantes(nombre_loc, id_loc):
                     if id_sheet in l_faltantes:
                         datos_x = buscar_celdas_2(id_sheet, nombre_local, mes_anio)
                         datos_data_faltantes.extend(datos_x)
-                        lista_sheet_completo.append(id_sheet)                           
+                        lista_sheet_completo.append(id_sheet)
+                        lista_nuevos_sheet(id_sheet)                         
                 page_token_2 = response2.get('nextPageToken', None)
                 if page_token_2 is None:
                     break
@@ -1011,14 +1024,33 @@ def datos_faltantes(nombre_loc, id_loc):
         df = df[["codigo", "sabor", "tamanio", "unidades_vendidas", 
                 "unidades_desechadas", "precio_dia", "dia", "semana", "mes", 
                 "anio", "fecha", "dia_nombre", "nombre_local", "distrito", "departamento"]]
+        
+        df['costo'] = 0
     
-        df.to_sql('registro_nuevo', engine, if_exists="append", index=False)
+        df.to_sql('registro_tortelin', engine, if_exists="append", index=False)
            
     ficha_3 = open('lista_id_excel_sheet.pckl', 'wb')
     pickle.dump(lista_sheet_completo, ficha_3)
     ficha_3.close()
+    ficha_cerrar = open('lista_nuevos_sheet.pckl', 'wb')
+    pickle.dump(lista_nuevos_sheet, ficha_cerrar)
+    ficha_cerrar.close()
     
     return print('no hay error')
+
+def faltantes_completo():
+    ficha1 = open('lista_id_folder_local.pckl', 'rb')
+    lista_local_id = pickle.load(ficha1)
+    ficha1.close()
+    ficha2 = open('lista_nombre_folder_local.pckl', 'rb')
+    lista_local_nombre = pickle.load(ficha2)
+    ficha2.close()
+    max = len(lista_local_id)
+    contador = 0
+    while contador < max:
+        datos_faltantes(lista_local_nombre[contador], lista_local_id[contador])
+        contador+=1
+    
 
 #datos_faltantes("Los Ángeles", "1pcpL_gLJJlKV1gwte1OCNQHHDmS3QuHD")
 #datos_faltantes("Santa Anita", "1EOVeHNuGBmPEz-4U0cgOjfDWpL7Z0P1B")
@@ -1037,7 +1069,7 @@ def datos_faltantes(nombre_loc, id_loc):
             "unidades_desechadas", "precio_dia", "dia", "semana", "mes", 
             "anio", "fecha", "dia_nombre", "nombre_local", "distrito", "departamento"]]
     
-    df.to_sql('registro_nuevo', engine, if_exists="append", index=False)
+    df.to_sql('registro_tortelin', engine, if_exists="append", index=False)
     ficha = open() """
 
 def back_pick():
@@ -1099,10 +1131,15 @@ def ejecutar_proceso_completo():
         search_and_convert_excels_ms()
         listar_new_excels_sheets()
         datos_etl()
+        faltantes_completo()
         borrando_extras()
+        ficha  = open("back_pick.pckl", "wb")
+        lista_vacia = []
+        pickle.dump(lista_vacia, ficha)
         print("Proceso Completado")
     except Exception as e:
-        print(e)        
+        print(e)
+        borrando_extras()        
         back_pick()
         print("A ocurrido un error, se retorna al estado antes de la ejecución")
     return None

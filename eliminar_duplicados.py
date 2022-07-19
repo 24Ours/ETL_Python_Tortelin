@@ -41,25 +41,5 @@ for fecha, local, tamaño, sabor in duplicados:
             conexion.commit() 
 
 
-##Eliminar valores alterados
-cur.execute("""IF OBJECT_ID('ELIMINAR_REGISTROS') IS NOT NULL
-BEGIN
-DROP PROC ELIMINAR_REGISTROS
-END
-GO
-CREATE PROCEDURE ELIMINAR_REGISTROS
-AS
-BEGIN
-DELETE from registro_tortelin where sabor='COCO' and tamanio = 'SUPERGRANDE'
-delete from registro_tortelin where nombre_local='Santa Anita' and tamanio ='PEQUEÑA' and sabor = 'GUANABANA' and fecha = '15-05-2021';
-delete from registro_tortelin where nombre_local='Los Ángeles' and tamanio ='PEQUEÑA' and sabor = 'TRES LECHES DE CHOCOLATE' and fecha = '02-02-2022';
-delete from registro_tortelin where nombre_local='Santa Anita' and tamanio ='PEQUEÑA' and sabor = 'FRESA CON DURAZNO' and fecha = '20-11-2021';
-delete from registro_tortelin where nombre_local='Santa Anita' and tamanio ='SUPERGRANDE' and sabor = 'FRESA CON DURAZNO' and fecha = '09-10-2021';
-delete from registro_tortelin where nombre_local='Los Ángeles' and tamanio ='PEQUEÑA' and sabor = 'TRES LECHES DE CHOCOLATE' and fecha = '18-12-2021';
-delete from registro_tortelin where nombre_local='Santa Anita' and tamanio ='MEDIANA' and sabor = 'TRES LECHES DE CHOCOLATE' and fecha = '05-01-2022';
-delete from registro_tortelin where nombre_local='Santa Anita' and tamanio ='MEDIANA' and sabor = 'SAUCO' and fecha = '15-11-2021';
-delete from registro_tortelin where nombre_local='Santa Anita' and tamanio ='PEQUEÑA' and sabor = 'GUANABANA' and fecha = '14-08-2021';
-delete from registro_tortelin where nombre_local='Los Ángeles' and tamanio ='MEDIANA' and sabor = 'TRES LECHES DE MANGO' and fecha = '21-09-2021';
-END 
-GO""")
+cur.execute("EXEC ELIMINAR_REGISTROS;")
 conexion.commit()
