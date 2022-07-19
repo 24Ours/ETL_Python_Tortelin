@@ -51,9 +51,7 @@ def Create_Service(client_secret_file, api_name, api_version, *scopes):
         print(e)
         return None
 
-#def convert_to_RFC_datetime(year=1900, month=1, day=1, hour=0, minute=0):
- #   dt = datetime.datetime(year, month, day, hour, minute, 0).isoformat() + 'Z'
- #   return dt
+
  
 CLIENT_SECRET_FILE = 'client_secrets.json'
 API_NAME = 'drive'
@@ -116,13 +114,11 @@ def delete_file(service, file_id):
         print ('hubo un error')
     return None
 
-#update_file(service, "1OdKERKlnok64kQWrWsDBjJ32dWl4RXJ7", "application/vnd.google-apps.spreadsheet")
-#file = service.files().get(fileId='1SpDR3l86HpYyJXFH-IdrT04ACq6SJQyV').execute()
-#print(file)
+
 
 #BUSCANDO FOLDERS DE LOS MESES
 
-#update_file(service, "1afIiJWnj1SJKnGNN1sg9bUq-1tGJi3BN", "11pkllolLtIucbKs9qVaINycJlsKrVMjD")
+
 
 def obtener_nombre(service, file_id):
     file = service.files().get(fileId=file_id).execute()
@@ -143,7 +139,7 @@ def search_folders():
         query_extra = " and '"+i+"'"+" in parents"
         page_token = None
         while True:
-            response = service.files().list(q="mimeType='application/vnd.google-apps.folder'"+query_extra,
+            response = service.files().list(q="mimeType='application/vnd.google-apps.folder'"+query_extra+" and trashed = false",
                                             spaces='drive',
                                             fields='nextPageToken, files(id, name)',
                                             pageToken=page_token).execute()
@@ -168,10 +164,10 @@ def search_folders():
     
     return print('no hay error')
 
-#search_folders()
+
 
 #LA PRIMERA FUNCIÓN A EJECUTAR ES search_folders
-#search_folders()
+
 #Con esta función se obtienen las 
 
 def search_and_convert_excels_ms():
@@ -188,7 +184,7 @@ def search_and_convert_excels_ms():
         query_extra = " and '"+i+"'"+" in parents"
         page_token = None
         while True:
-            response = service.files().list(q="mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'"+query_extra,
+            response = service.files().list(q="mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'"+query_extra+" and trashed = false",
                                             spaces='drive',
                                             fields='nextPageToken, files(id, name)',
                                             pageToken=page_token).execute()
@@ -216,15 +212,7 @@ def search_and_convert_excels_ms():
 
 #LA SEGUNDA FUNCIÓN A EJECUTAR ES PARA BUSCAR Y CONVERTIR DENTRO DE CADA FOLDER.
 
-#search_and_convert_excels_ms()
 
-""" fichero1 = open('lista_id_folder_mes.pckl', 'rb')
-listas_meses_id = pickle.load(fichero1)
-fichero1.close() """
-
-""" fichero2 = open('lista_id_excel_ms.pckl', 'rb')
-lista_id_excels_ms = pickle.open(fichero2)
-fichero2.close() """
 
 # ENCONTRAR LOS NUEVOS SHEETS GENERADOS Y OBTENER SUS ID PARA EL PROCESO ETL
 
@@ -273,21 +261,6 @@ def listar_new_excels_sheets():
 #AHORA SE EJECUTA LA FUNCIÓN PARA BUSCAR LOS NUEVOS SHEETS GENERADOS PARA ENCONTRAR SU ID
 #Y SE GUARDAN ESOS VALORES
 
-#listado_sheets_nuevos = listar_new_excels_sheets()
-
-""" for i in listas_meses_id:
-    page_token = None
-    while True:
-        response = service.files().list(q="ID = "+i,
-                                        spaces='drive',
-                                        fields='nextPageToken, files(id, name)',
-                                        pageToken=page_token).execute()
-        for file in response.get('files', []):
-            # Process change
-            print (file.get('name'), file.get('id'))
-        page_token = response.get('nextPageToken', None)
-        if page_token is None:
-            break """
 
 #------------------------------SEGUNDA FASE----------------------------------------------------------
 
@@ -551,10 +524,6 @@ def buscar_celdas_2(id_documento, nombre_local, nombre_carpeta):
     print("Se ha procesado correctamente el archivo Excel de fecha "+funcion[3]+" del local "+nombre_local)
     return datos_nuevo
 
-""" datos = buscar_celdas(SAMPLE_SPREADSHEET_ID)
-df = pd.DataFrame(data= datos)
-print(df) """
-
 def datos_etl():
     ficha1 = open('lista_id_folder_local.pckl', 'rb')
     lista_locales = pickle.load(ficha1)
@@ -575,7 +544,7 @@ def datos_etl():
         query_extra = " and '"+i+"'"+" in parents"
         page_token = None
         while True:
-            response1 = service.files().list(q="mimeType='application/vnd.google-apps.folder'"+query_extra,
+            response1 = service.files().list(q="mimeType='application/vnd.google-apps.folder'"+query_extra+" and trashed = false",
                                             spaces='drive',
                                             fields='nextPageToken, files(id, name)',
                                             pageToken=page_token).execute()
@@ -615,17 +584,6 @@ def datos_etl():
     
     return print('No ocurrieron errores')
 
-""" datos = buscar_celdas_2("1D_9JQwhFj_yeJxF3uUgx2Lj58d0UygXcX1ICvbV7XhA", "Los Ángeles", "AGOSTO-2021")
-df = pd.DataFrame(data= datos, columns=["sabor", "tamanio", "codigo", "unidades_vendidas", 
-                                        "unidades_desechadas", "precio_dia", "dia", "mes", 
-                                        "anio", "fecha", "semana", "dia_nombre", "nombre_local", "distrito", "departamento"])
-df = df[["codigo", "sabor", "tamanio", "unidades_vendidas", 
-        "unidades_desechadas", "precio_dia", "dia", "semana", "mes", 
-        "anio", "fecha", "dia_nombre", "nombre_local", "distrito", "departamento"]]
-print(df)
-
-engine = create_engine('postgresql+psycopg2://postgres:12345678@localhost:5432/DBTortelin')
-df.to_sql('registro_tortelin', engine, if_exists="append", index=False) """
 
 server = config['server']
 bd = config['bd']
@@ -785,73 +743,6 @@ def ejecutar_mes_nopick(nombre_local, nombre_carpeta, id_carpeta_mes):
     
     return print("la carpeta "+nombre_carpeta+ " del local "+nombre_local+" se ejecutó sin problemas")
 
-#ejecutar_mes_nopick("Los Ángeles", "MAYO-2021", "1qnxMKe5-KfgDbLB_PV5Fn8Frs8LLnkHH")
-#ejecutar_mes_nopick("Los Ángeles", "AGOSTO-2021", "13pqzbAai6X16QzwIUJ-b46cLQAQ9K6Di")
-#ejecutar_mes_nopick("Los Ángeles", "JUNIO-2021", "1l3avWSXs2-fgK2629d32M2NC-jWYJimA")
-#ejecutar_mes_nopick("Los Ángeles", "JULIO-2021", "1LAALvb0VjtRDWHeyHgkdZ3CD04GZ-qhq")
-#ejecutar_mes_nopick("Los Ángeles", "SEPTIEMBRE-2021", "1f241LvSpE6WZTFp8vJLc1GDZkbskMTsl")
-#ejecutar_mes_nopick("Los Ángeles", "OCTUBRE-2021", "1JLvySmXEH8hG0uYFRJ3IapzPImnKlpbQ")
-#ejecutar_mes_nopick("Los Ángeles", "NOVIEMBRE-2021", "16A5DR_IqyvAjlmpzNWMO1k3wRtcvQtdz")
-#ejecutar_mes_nopick("Los Ángeles", "DICIEMBRE-2021", "1OPQoVqcZZJkuINgkBQ1Z4cobfHqL7tCh")
-#ejecutar_mes_nopick("Los Ángeles", "ENERO-2022", "1QJ5_NHmKo5WtwbbtVzoSvvLENES-Tb2J")
-#ejecutar_mes_nopick("Los Ángeles", "FEBRERO-2022", "1_HVOIOPA4SqXE-K9dIFyIO9otl4l706B")
-#ejecutar_mes_nopick("Los Ángeles", "MARZO-2022", "1phXEFRbEyQ5ipMnXs6VfCpm8DxQBGsyA")
-#ejecutar_mes_nopick("Los Ángeles", "ABRIL-2022", "1eXezKAoAJKXhFm9rdgElayTDIjNsp1Lc")
-#ejecutar_mes_pick("Los Ángeles", "ABRIL-2022", "1eXezKAoAJKXhFm9rdgElayTDIjNsp1Lc")
-
-#ejecutar_mes_nopick("Santa Anita", "MAYO-2021", "1sr3Q6PnrVDV7GkF7bU4ruPcmWjEGQRgh")
-#ejecutar_mes_nopick("Santa Anita", "JUNIO-2021", "1Pg5tfAKoWSR0OGQnMFGDUjPS5okMm1BA")
-#ejecutar_mes_nopick("Santa Anita", "JULIO-2021", "1Dyixiy_Cg88kQc2J064yx4zqPNFXw8Rx")
-#ejecutar_mes_nopick("Santa Anita", "AGOSTO-2021", "1qnc9alx-zOnsP78kSOyC2fI0u_b5nbnm")
-#ejecutar_mes_nopick("Santa Anita", "SEPTIEMBRE-2021", "1xtpJUBetfc-ksEdSyUwwWIJCUJkfBAq8")
-#ejecutar_mes_nopick("Santa Anita", "OCTUBRE-2021", "1xYX-VbkdxZHIi7kdgSk0rxMNAmiAH1rS")
-#ejecutar_mes_nopick("Santa Anita", "NOVIEMBRE-2021", "1McUMqS4-6sEXtKm-sc-wdm6cRD-dcdV1")
-#ejecutar_mes_nopick("Santa Anita", "DICIEMBRE-2021", "165bfXScme1G-CIn5X060R32yFRskENma")
-#ejecutar_mes_nopick("Santa Anita", "ENERO-2022", "185CMPSfcth5gVBRtuIie8TbvTB9PLMAc")
-#ejecutar_mes_nopick("Santa Anita", "FEBRERO-2022", "1B4VPrIlC_uXiMd8skW32-RsCfjOq0Vsr")
-#ejecutar_mes_nopick("Santa Anita", "MARZO-2022", "1C6uMk8zNZvh_9vi0qQicAsDfQX7XUqFR")
-#ejecutar_mes_nopick("Santa Anita", "ABRIL-2022", "1C5Ik50sV1u8wBDELw0YM61zRSBg6CRCI")
-
-#ejecutar_mes_nopick("Santa Rosa", "MAYO-2021", "1JJZ0_-P8ZWRydzIyCuEsCJzHYHK26H-s")
-#ejecutar_mes_nopick("Santa Rosa", "JUNIO-2021", "1W3PBKTxbPzInLjxNP6N8lp192tdsjTh5")
-#ejecutar_mes_nopick("Santa Rosa", "JULIO-2021", "1rcmwEKcSR2wuaknoE7lk8AJBONTdv6rm")
-#ejecutar_mes_nopick("Santa Rosa", "AGOSTO-2021", "1gJaXTT9HYlkCDtxj65vd8rUmMAUW-P71")
-#ejecutar_mes_nopick("Santa Rosa", "SEPTIEMBRE-2021", "1_DI0ZoxoJfmDI0XPCgXIhrrpCmRCaZ_d")
-#ejecutar_mes_nopick("Santa Rosa", "OCTUBRE-2021", "1tT6Hg7AmXAR7ERzBiBjcZU9GX6UAdqVm")
-#ejecutar_mes_nopick("Santa Rosa", "NOVIEMBRE-2021", "1L3b_U30z2osg184SclgzwGph02Ca0fRg")
-#ejecutar_mes_nopick("Santa Rosa", "DICIEMBRE-2021", "1qide-jodvsnYE8G4QJVhgenQeN2_JTpU")
-#ejecutar_mes_nopick("Santa Rosa", "ENERO-2022", "1etzNKA0mNSU34wXp1BlibnkrcXlbHmBj")
-#ejecutar_mes_nopick("Santa Rosa", "FEBRERO-2022", "1A4zyzjxgqNqXPOQWrOKtyTBHDlwsVFpM")
-#ejecutar_mes_nopick("Santa Rosa", "MARZO-2022", "1kiVvGFJTZluqMCnerxoHFibbKyD4oNyZ")
-#ejecutar_mes_nopick("Santa Rosa", "ABRIL-2022", "1LhgcXpgEx8xa13TMhCJDSIeVkcbFvNqN")
-
-#ejecutar_mes_nopick("Virreyes", "MAYO-2021", "1sYLFYmfy0OyNb-0ZBBvbuVNkNbj1bbSm")
-#ejecutar_mes_nopick("Virreyes", "JUNIO-2021", "1g5QnWDxgMmjMMDXGdWhzAXIgyc17BSan")
-#ejecutar_mes_nopick("Virreyes", "JULIO-2021", "1yts4krRcquajdHCx7Hk9lhh2uI9EUz9p")
-#ejecutar_mes_nopick("Virreyes", "AGOSTO-2021", "1E2lmDyP2029LHuczVwTNU8PetDnN5w_K")
-#ejecutar_mes_nopick("Virreyes", "SEPTIEMBRE-2021", "1rACCvceRfEC64NpsKGeRjKHno2Iyjhjd")
-#ejecutar_mes_nopick("Virreyes", "OCTUBRE-2021", "1wpQevLMDaqru76UEQXz2IxbqAsiU0Rui")
-#ejecutar_mes_nopick("Virreyes", "NOVIEMBRE-2021", "1C3V1DtnOH0iUOYYnBSKSO9h3i-auRmkc")
-#ejecutar_mes_nopick("Virreyes", "DICIEMBRE-2021", "1TIJROn4LaJkpS6rUyvxCOjNIwh_fPb-f")
-#ejecutar_mes_nopick("Virreyes", "ENERO-2022", "1yq455RDxjxF26Ekz2KijckB8ODA4ZjNm")
-#ejecutar_mes_nopick("Virreyes", "FEBRERO-2022", "1eG2cF3Erki7XAz2nQiEJSdRemRjVWCAp")
-#ejecutar_mes_nopick("Virreyes", "MARZO-2022", "11OQzkLIdMecrLZ3vbvbtfxEK70CgW25a")
-#ejecutar_mes_nopick("Virreyes", "ABRIL-2022", "1_MyCloipaSxPOaEX5V024iY8i5RH5QQJ")
-
-#ejecutar_mes_nopick("Vista Alegre", "MAYO-2021", "1WmpCUIDRJBSpVz54DmdStB-TsAIH9CuG")
-#ejecutar_mes_nopick("Vista Alegre", "JUNIO-2021", "1s4zAy2DkbnLSRV_A0cIKn0oJz_0xZeU6")
-#ejecutar_mes_nopick("Vista Alegre", "JULIO-2021", "1UV2BDFujiUOzRK0sv01KiMhlSF-fQEQK")
-#ejecutar_mes_nopick("Vista Alegre", "AGOSTO-2021", "11pkllolLtIucbKs9qVaINycJlsKrVMjD")
-#ejecutar_mes_nopick("Vista Alegre", "SEPTIEMBRE-2021", "1WIX-qZkLAYAo_jxNPuKqjavLmRcIAl65")
-#ejecutar_mes_nopick("Vista Alegre", "OCTUBRE-2021", "10SPWfyq5JlZcDxoWA_mh3ZR4XRpOVg3N")
-#ejecutar_mes_nopick("Vista Alegre", "NOVIEMBRE-2021", "1LalaiMCf-gCVzzrXinrguY-flojl3g3k")
-#ejecutar_mes_nopick("Vista Alegre", "DICIEMBRE-2021", "17Gg6jumpDwY3hrYvY9ioyKEkqU-EV2rM")
-#ejecutar_mes_nopick("Vista Alegre", "ENERO-2022", "19yT8UmFXVQXMMPktB9KlY1ZFyzuM3DRd")
-#ejecutar_mes_nopick("Vista Alegre", "FEBRERO-2022", "1XS-e-QTGPK5-2Ou5Vh_mdCvRNa8kWI7h")
-#ejecutar_mes_nopick("Vista Alegre", "MARZO-2022", "1p72W1PvXIiXk5GZIYNKy9vqYRWRR-y9P")
-#ejecutar_mes_nopick("Vista Alegre", "ABRIL-2022", "1X0aGmiXtBKkt_TBFQxTU-Bx4kiBZ1jfq")
-
-#--------------------------------------------------------------------------------
 
 
 def mostrar_fechas_faltantes_procesar():
@@ -884,7 +775,7 @@ def mostrar_fechas_faltantes_procesar():
                 break
     return lista_de_listas
 
-#mostrar_fechas_faltantes_procesar()
+
 
 def mostrar_fechas_faltantes_convertir():
     ficha = open('lista_id_excel_ms.pckl', 'rb')
@@ -913,12 +804,6 @@ def mostrar_fechas_faltantes_convertir():
                 break
     return print("listo")
 
-#mostrar_fechas_faltantes_convertir()
-
-""" if __name__ == "__main__": 
-    
-    
-    """
     
 def ejecutar_mes_noviembre_2021_santa_anita(nombre_local, nombre_carpeta, id_carpeta_mes):
     data_frame_mes = []
@@ -953,7 +838,7 @@ def ejecutar_mes_noviembre_2021_santa_anita(nombre_local, nombre_carpeta, id_car
     
     return print("la carpeta "+nombre_carpeta+ " del local "+nombre_local+" se ejecutó sin problemas")
 
-#ejecutar_mes_noviembre_2021_santa_anita("Santa Anita", "NOVIEMBRE-2021", "1McUMqS4-6sEXtKm-sc-wdm6cRD-dcdV1")
+
 
 def dia_unico(id_loc, nombre_local, nombre_carpeta):
     datos = buscar_celdas_2(id_loc, nombre_local, nombre_carpeta)
@@ -1052,25 +937,6 @@ def faltantes_completo():
         contador+=1
     
 
-#datos_faltantes("Los Ángeles", "1pcpL_gLJJlKV1gwte1OCNQHHDmS3QuHD")
-#datos_faltantes("Santa Anita", "1EOVeHNuGBmPEz-4U0cgOjfDWpL7Z0P1B")
-#datos_faltantes("Santa Rosa", "18cLhT9aOMf64DDjJpxThUf_eFId8E_im")
-#datos_faltantes("Virreyes", "1yKVy7x85ZaS5rGkD9wRdJIwhOMvAor3I")
-#datos_faltantes("Vista Alegre", "1vSsUKo-ckO_za-eY1bXkufpz_wbvQdWv")
-
-
-""" def expecion(id_doc, nombre_loc, nombre_carpeta):
-    dato = buscar_celdas_2(id_doc, nombre_loc, nombre_carpeta)
-    df = pd.DataFrame(data= dato, columns=["sabor", "tamanio", "codigo", "unidades_vendidas", 
-                                        "unidades_desechadas", "precio_dia", "dia", "mes", 
-                                        "anio", "fecha", "semana", "dia_nombre", "nombre_local", "distrito", "departamento"])
-
-    df = df[["codigo", "sabor", "tamanio", "unidades_vendidas", 
-            "unidades_desechadas", "precio_dia", "dia", "semana", "mes", 
-            "anio", "fecha", "dia_nombre", "nombre_local", "distrito", "departamento"]]
-    
-    df.to_sql('registro_tortelin', engine, if_exists="append", index=False)
-    ficha = open() """
 
 def back_pick():
     ficha_excel = open('lista_id_excel_ms.pckl', 'rb') #Abriendo pickle excels xlsx
